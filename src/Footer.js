@@ -1,7 +1,7 @@
-const Footer=()=>{
-    const date = new Date();
+const Footer=({length})=>{
+    
     return <footer>
-        CopyRight &copy; {date.getFullYear()}
+        <p>{length} List {length===1?'Item':'Items'}</p>
     </footer>
 }
 export default Footer;
