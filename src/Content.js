@@ -5,7 +5,7 @@ const Content = ({items,handleCheck,hadleDelete}) => {
    
    
     return (
-        <main>
+        <>
              {items.length ? (
                 <ItemList
                 items={items}
@@ -21,7 +21,7 @@ const Content = ({items,handleCheck,hadleDelete}) => {
                 <p style={{ marginTop: '2rem' }}>Your list is empty.</p>
             )}
          
-        </main>
+        </>
     )
 }
 
