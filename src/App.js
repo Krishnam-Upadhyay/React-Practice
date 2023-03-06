@@ -1,139 +1,60 @@
-
-import {useState,useEffect} from 'react';
-import Header from './Herader'
-import AddItem from './AddItem';
-import SearchItems from './SearchItems';
-import Content from './Content'
-import Footer from './Footer';
-import apiRequest from './apiRequest';
+import "./App.css";
+import { useState } from "react";
+import { Task } from "./Components/Task";
 
 function App() {
-  const API_URL = 'http://localhost:3500/items';
+  const [todoList, setTodoList] = useState([]);
+  const [newTask, setNewTask] = useState("");
 
-  
-
-  const [items,setItems]=useState(JSON.parse(localStorage.getItem('shoppinglist')) || []);
-const [newItem,setNewItem]=useState("");
-const [search,setSearch]=useState('');
-const [fetchError,setFetchError]=useState(null);
-const [isLoading,setIsLoading]=useState(true);
-
-useEffect(()=>{
- const fetchItems = async ()=>{
-  try {
-    const response = await fetch(API_URL);
-    if (!response.ok)throw Error('Did not received Data');
-
-    const listItems = await response.json();
-    console.log(listItems);
-    setItems(listItems);
-    
-  } catch (error) {
-    setFetchError(error.message)
-    
-  }finally{
-    setIsLoading(false);
-  }
- }
- setTimeout(() => {
-  (async ()=>await fetchItems())();
- }, 2000);
-
-
-},[]);
-let handleCheck = async (id)=>{
-   const listItems = items.map((item)=> item.id ===id ? {...item,checked:!item.checked} : item ) 
-   setItems(listItems);
-
-   const myItem = listItems.filter((item)=>item.id ===id);
-   const updateOptions ={
-    method:'PATCH',
-    headers:{
-      'Content-Type':'application/json'
-    },
-    body:JSON.stringify({checked:myItem[0].checked})
+  const handleChange = (event) => {
+    setNewTask(event.target.value);
   };
-  const reqUrl = `${API_URL}/${id}`;
-  const result = await apiRequest(reqUrl,updateOptions)
-  if(result) setFetchError(result);
-   
-    
-}
 
-let hadleDelete =async (id)=>{
-    const listItems = items.filter((item)=>item.id !==id);
-    setItems(listItems);
+  const addTask = () => {
+    const task = {
+      id: todoList.length === 0 ? 1 : todoList[todoList.length - 1].id + 1,
+      taskName: newTask,
+      completed: false,
+    };
+    setTodoList(task.taskName !== "" ? [...todoList, task] : todoList);
+  };
 
-    const deletOptions = {method:'DELETE'};
-    const reqUrl = `${API_URL}/${id}`;
-    const result = await apiRequest(reqUrl,deletOptions);
-    if(result) setFetchError(result);
-   
+  const deleteTask = (id) => {
+    setTodoList(todoList.filter((task) => task.id !== id));
+  };
 
-};
-
-
-
-const addItem=async (item)=>{
-  const id = items.length?items[items.length-1].id+1:1;
-  const myNewItem={id,checked:false,item:item};
-  const listItems = [...items,myNewItem];
-  setItems(listItems);
-
-  const postOptions ={
-    method:'POST',
-    headers:{
-      'Content-Type':'application/json'
-    },
-    body:JSON.stringify(myNewItem)
-  }
-  const result = await apiRequest(API_URL,postOptions);
-  if(result) setFetchError(result);
-
-}
-
-const handleSubmit=(e)=>{
-  e.preventDefault();
-  if(!newItem){
-    alert('Please Enter a item');
-  }
-  addItem(newItem);
-  setNewItem('');
-}
- 
+  const completeTask = (id) => {
+    setTodoList(
+      todoList.map((task) => {
+        if (task.id === id) {
+          return { ...task, completed: true };
+        } else {
+          return task;
+        }
+      })
+    );
+  };
 
   return (
-    <div className="App" >
-      <Header
-      title='Groceries List'
-      />
-
-      <AddItem
-      newItem={newItem}
-      setNewItem={setNewItem}
-      handleSubmit={handleSubmit}
-      />
-
-      <SearchItems
-      search={search}
-      setSearch={setSearch}
-      />
-      <main>
-        {isLoading && <p>Loading Items..</p>}
-        {fetchError && <p style={{color:'red'}}>{`Error:${fetchError}`}</p>}
-        {!fetchError && !isLoading &&
-        <Content
-        items={items.filter(item=>((item.item).toLowerCase()).includes(search.toLowerCase()))}
-        handleCheck={handleCheck}
-        hadleDelete={hadleDelete}
-        />}
-      </main>
-
-      <Footer 
-      length={items.length}
-      />
-     
-  </div>
+    <div className="App">
+      <div className="addTask">
+        <input onChange={handleChange} />
+        <button onClick={addTask}> Add Task</button>
+      </div>
+      <div className="list">
+        {todoList.map((task) => {
+          return (
+            <Task
+              taskName={task.taskName}
+              id={task.id}
+              completed={task.completed}
+              deleteTask={deleteTask}
+              completeTask={completeTask}
+            />
+          );
+        })}
+      </div>
+    </div>
   );
 }
 
